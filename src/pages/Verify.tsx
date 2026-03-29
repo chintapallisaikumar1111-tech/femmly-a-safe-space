@@ -18,11 +18,9 @@ const Verify = () => {
   const { user, isVerified, refreshProfile } = useAuth();
   const { toast } = useToast();
 
-  // If already verified, go to feed
-  if (isVerified) {
-    navigate("/feed", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (isVerified) navigate("/feed", { replace: true });
+  }, [isVerified, navigate]);
 
   const startCamera = async () => {
     try {
