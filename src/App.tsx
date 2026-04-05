@@ -44,6 +44,7 @@ const App = () => (
             <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
