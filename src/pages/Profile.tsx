@@ -1,9 +1,48 @@
-import { Settings, Grid3X3, Bookmark, Shield } from "lucide-react";
+import { Settings, Grid3X3, Bookmark, Shield, LogOut, UserCog, Users, UserPlus, Share2, ShieldCheck, Bell, HelpCircle, Lock } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import { currentUser, exploreImages } from "@/lib/mock-data";
+import { currentUser, exploreImages, users } from "@/lib/mock-data";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+} from "@/components/ui/dialog";
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const { signOut, user, isAdmin } = useAuth();
+  const { toast } = useToast();
+  const [tab, setTab] = useState<"posts" | "saved">("posts");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [listOpen, setListOpen] = useState<null | "followers" | "following">(null);
+  const [name, setName] = useState(currentUser.displayName);
+  const [bio, setBio] = useState(currentUser.bio);
+
+  const handleLogout = async () => {
+    setSettingsOpen(false);
+    await signOut();
+    toast({ title: "Logged out", description: "See you soon 💜" });
+    navigate("/welcome", { replace: true });
+  };
+
+  const handleShare = async () => {
+    const url = window.location.origin + "/profile";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "My Femmly Profile", url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "Link copied!" });
+      }
+    } catch {}
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
@@ -13,9 +52,50 @@ const Profile = () => {
             <h1 className="text-lg font-bold font-sans text-foreground">{currentUser.username}</h1>
             <Shield size={16} className="text-primary fill-primary" />
           </div>
-          <button aria-label="Settings">
-            <Settings size={24} className="text-foreground" strokeWidth={1.5} />
-          </button>
+          <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
+            <SheetTrigger asChild>
+              <button aria-label="Settings">
+                <Settings size={24} className="text-foreground" strokeWidth={1.5} />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[85vw] sm:max-w-sm">
+              <SheetHeader>
+                <SheetTitle className="font-display">Settings</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 space-y-1">
+                {[
+                  { icon: UserCog, label: "Edit Profile", onClick: () => { setSettingsOpen(false); setEditOpen(true); } },
+                  { icon: ShieldCheck, label: "Privacy & Safety", onClick: () => toast({ title: "Privacy", description: "All settings are at maximum protection." }) },
+                  { icon: Bell, label: "Notifications", onClick: () => toast({ title: "Notifications", description: "Push & email preferences saved." }) },
+                  { icon: Lock, label: "Account Security", onClick: () => toast({ title: "Account secure", description: "2FA recommended." }) },
+                  { icon: HelpCircle, label: "Help & Support", onClick: () => toast({ title: "Support", description: "Email founder@femmly.app" }) },
+                  ...(isAdmin ? [{ icon: ShieldCheck, label: "Admin Panel", onClick: () => { setSettingsOpen(false); navigate("/admin"); } }] : []),
+                ].map(({ icon: Icon, label, onClick }) => (
+                  <button
+                    key={label}
+                    onClick={onClick}
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-colors text-left"
+                  >
+                    <Icon size={18} className="text-primary" />
+                    <span className="text-sm font-medium text-foreground">{label}</span>
+                  </button>
+                ))}
+                <div className="border-t border-border my-3" />
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-destructive/10 transition-colors text-left"
+                >
+                  <LogOut size={18} className="text-destructive" />
+                  <span className="text-sm font-medium text-destructive">Log out</span>
+                </button>
+                <p className="text-[10px] text-muted-foreground text-center pt-6">
+                  Femmly • Built by Sai Kumar CH
+                  <br />
+                  Signed in as {user?.email}
+                </p>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </header>
 
@@ -32,18 +112,18 @@ const Profile = () => {
             </div>
           </div>
           <div className="flex flex-1 justify-around text-center">
-            <div>
+            <button onClick={() => setTab("posts")} className="focus:outline-none">
               <p className="text-lg font-bold text-foreground">{currentUser.posts}</p>
               <p className="text-xs text-muted-foreground">Posts</p>
-            </div>
-            <div>
+            </button>
+            <button onClick={() => setListOpen("followers")} className="focus:outline-none">
               <p className="text-lg font-bold text-foreground">{currentUser.followers.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground">Followers</p>
-            </div>
-            <div>
+            </button>
+            <button onClick={() => setListOpen("following")} className="focus:outline-none">
               <p className="text-lg font-bold text-foreground">{currentUser.following}</p>
               <p className="text-xs text-muted-foreground">Following</p>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -55,32 +135,40 @@ const Profile = () => {
         <div className="mt-4 flex gap-2">
           <motion.button
             whileTap={{ scale: 0.97 }}
+            onClick={() => setEditOpen(true)}
             className="flex-1 rounded-lg bg-muted py-2 text-sm font-semibold text-foreground"
           >
             Edit Profile
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.97 }}
-            className="flex-1 rounded-lg bg-muted py-2 text-sm font-semibold text-foreground"
+            onClick={handleShare}
+            className="flex-1 rounded-lg bg-muted py-2 text-sm font-semibold text-foreground flex items-center justify-center gap-1.5"
           >
-            Share Profile
+            <Share2 size={14} /> Share Profile
           </motion.button>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex border-t border-border">
-        <button className="flex-1 flex justify-center py-3 border-b-2 border-foreground">
-          <Grid3X3 size={22} className="text-foreground" />
+        <button
+          onClick={() => setTab("posts")}
+          className={`flex-1 flex justify-center py-3 border-b-2 ${tab === "posts" ? "border-foreground" : "border-transparent"}`}
+        >
+          <Grid3X3 size={22} className={tab === "posts" ? "text-foreground" : "text-muted-foreground"} />
         </button>
-        <button className="flex-1 flex justify-center py-3 border-b-2 border-transparent">
-          <Bookmark size={22} className="text-muted-foreground" />
+        <button
+          onClick={() => setTab("saved")}
+          className={`flex-1 flex justify-center py-3 border-b-2 ${tab === "saved" ? "border-foreground" : "border-transparent"}`}
+        >
+          <Bookmark size={22} className={tab === "saved" ? "text-foreground" : "text-muted-foreground"} />
         </button>
       </div>
 
       {/* Posts grid */}
       <div className="grid grid-cols-3 gap-0.5">
-        {exploreImages.slice(0, 9).map((img, i) => (
+        {(tab === "posts" ? exploreImages.slice(0, 9) : exploreImages.slice(0, 3)).map((img, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0 }}
@@ -95,7 +183,75 @@ const Profile = () => {
             />
           </motion.div>
         ))}
+        {tab === "saved" && exploreImages.length === 0 && (
+          <p className="col-span-3 text-center text-sm text-muted-foreground py-12">No saved posts yet</p>
+        )}
       </div>
+
+      {/* Edit Profile dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display">Edit Profile</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Display Name</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full mt-1 rounded-lg border border-border bg-muted px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Bio</label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={3}
+                className="w-full mt-1 rounded-lg border border-border bg-muted px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => { setEditOpen(false); toast({ title: "Profile updated ✨" }); }}
+              className="w-full rounded-xl gradient-femmly py-2.5 text-sm font-semibold text-primary-foreground"
+            >
+              Save Changes
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Followers/Following dialog */}
+      <Dialog open={!!listOpen} onOpenChange={(o) => !o && setListOpen(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display capitalize">{listOpen}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+            {users.filter((u) => u.id !== "me").map((u) => (
+              <div key={u.id} className="flex items-center gap-3 py-2">
+                <img src={u.avatar} alt={u.username} className="h-10 w-10 rounded-full object-cover" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-1">
+                    {u.username}
+                    {u.isVerified && <Shield size={11} className="text-primary fill-primary" />}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{u.displayName}</p>
+                </div>
+                <button
+                  onClick={() => toast({ title: listOpen === "followers" ? "Removed" : "Unfollowed" })}
+                  className="rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-foreground"
+                >
+                  {listOpen === "followers" ? "Remove" : "Following"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
