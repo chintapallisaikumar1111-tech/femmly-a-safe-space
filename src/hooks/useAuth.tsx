@@ -80,6 +80,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    // Fire-and-forget security log via cyber-guard edge function
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cyber-guard`;
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_type: error ? "failed_login" : "login_success",
+          user_agent: navigator.userAgent,
+          metadata: { email_domain: email.split("@")[1] || "unknown" },
+        }),
+      }).catch(() => {});
+    } catch { /* non-blocking */ }
     return { error };
   };
 
