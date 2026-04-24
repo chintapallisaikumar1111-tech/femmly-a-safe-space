@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Heart, Users, Sparkles, Star } from "lucide-react";
+import { Shield, Heart, Users, Sparkles, Star, Download } from "lucide-react";
 import { Suspense, lazy } from "react";
 import femmlyLogo from "@/assets/femmly-logo.png";
 
@@ -133,6 +133,14 @@ const Splash = () => {
             >
               I already have an account
             </button>
+            <a
+              href="https://github.com/chintapallisaikumar1111-tech/femmly-a-safe-space/releases/download/v1.0/Femmly.apk"
+              download
+              className="w-full rounded-2xl border-2 border-pink-400 bg-pink-500/10 backdrop-blur-md py-4 text-base font-semibold text-pink-400 transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              <Download size={18} />
+              Download Femmly App
+            </a>
           </motion.div>
 
           {/* Founder & Legal */}
