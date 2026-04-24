@@ -1,1 +1,4 @@
 project_id = "xbtnpatqapikrcplniue"
+
+[functions.setup-accounts]
+verify_jwt = false
