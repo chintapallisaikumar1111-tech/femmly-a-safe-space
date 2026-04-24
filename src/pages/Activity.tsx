@@ -1,7 +1,9 @@
+import { useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import { users } from "@/lib/mock-data";
 import { Heart, Shield } from "lucide-react";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 const activities = [
   { user: users[1], action: "liked your photo", time: "2m", type: "like" as const },
@@ -12,6 +14,8 @@ const activities = [
 ];
 
 const Activity = () => {
+  const { toast } = useToast();
+  const [following, setFollowing] = useState<Record<string, boolean>>({});
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
@@ -46,8 +50,19 @@ const Activity = () => {
               </p>
             </div>
             {activity.type === "follow" ? (
-              <button className="rounded-lg gradient-femmly px-5 py-1.5 text-xs font-semibold text-primary-foreground">
-                Follow
+              <button
+                onClick={() => {
+                  const isF = !following[activity.user.id];
+                  setFollowing({ ...following, [activity.user.id]: isF });
+                  toast({ title: isF ? `Following ${activity.user.username}` : `Unfollowed` });
+                }}
+                className={`rounded-lg px-5 py-1.5 text-xs font-semibold ${
+                  following[activity.user.id]
+                    ? "bg-muted text-foreground"
+                    : "gradient-femmly text-primary-foreground"
+                }`}
+              >
+                {following[activity.user.id] ? "Following" : "Follow"}
               </button>
             ) : (
               <Heart size={16} className="text-destructive fill-destructive flex-shrink-0" />
