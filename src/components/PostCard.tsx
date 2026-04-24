@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Shield } from "lucide-react";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Shield, Flag, Link2, EyeOff } from "lucide-react";
 import { Post } from "@/lib/mock-data";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 interface PostCardProps {
   post: Post;
@@ -12,6 +19,28 @@ const PostCard = ({ post }: PostCardProps) => {
   const [isSaved, setIsSaved] = useState(post.isSaved);
   const [likes, setLikes] = useState(post.likes);
   const [showHeart, setShowHeart] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<{ user: string; text: string }[]>([
+    { user: "emma.wellness", text: "This is everything 💕" },
+    { user: "priya.ceo", text: "Inspiring!" },
+  ]);
+  const { toast } = useToast();
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/?post=${post.id}`;
+    try {
+      if (navigator.share) await navigator.share({ title: "Femmly post", url });
+      else { await navigator.clipboard.writeText(url); toast({ title: "Link copied" }); }
+    } catch {}
+  };
+
+  const submitComment = () => {
+    if (!comment.trim()) return;
+    setComments([...comments, { user: "you", text: comment }]);
+    setComment("");
+    toast({ title: "Comment added" });
+  };
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -54,9 +83,24 @@ const PostCard = ({ post }: PostCardProps) => {
             </div>
           </div>
         </div>
-        <button className="text-muted-foreground" aria-label="More options">
-          <MoreHorizontal size={20} />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="text-muted-foreground" aria-label="More options">
+              <MoreHorizontal size={20} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => toast({ title: "Reported", description: "Our team will review within 24h." })}>
+              <Flag size={14} className="mr-2" /> Report
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toast({ title: "Hidden", description: "You won't see this again." })}>
+              <EyeOff size={14} className="mr-2" /> Hide
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleShare}>
+              <Link2 size={14} className="mr-2" /> Copy link
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Image */}
@@ -96,10 +140,10 @@ const PostCard = ({ post }: PostCardProps) => {
                 strokeWidth={1.5}
               />
             </motion.button>
-            <button aria-label="Comment">
+            <button aria-label="Comment" onClick={() => setCommentsOpen(true)}>
               <MessageCircle size={24} className="text-foreground" strokeWidth={1.5} />
             </button>
-            <button aria-label="Share">
+            <button aria-label="Share" onClick={handleShare}>
               <Send size={24} className="text-foreground" strokeWidth={1.5} />
             </button>
           </div>
@@ -128,7 +172,7 @@ const PostCard = ({ post }: PostCardProps) => {
         </p>
 
         {/* Comments link */}
-        <button className="mt-1 text-sm text-muted-foreground">
+        <button onClick={() => setCommentsOpen(true)} className="mt-1 text-sm text-muted-foreground">
           View all {post.comments} comments
         </button>
 
@@ -137,6 +181,34 @@ const PostCard = ({ post }: PostCardProps) => {
           {post.timeAgo} ago
         </p>
       </div>
+
+      <Dialog open={commentsOpen} onOpenChange={setCommentsOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display">Comments</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+            {comments.map((c, i) => (
+              <div key={i} className="text-sm">
+                <span className="font-semibold text-foreground">{c.user}</span>{" "}
+                <span className="text-foreground">{c.text}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 pt-2 border-t border-border">
+            <input
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitComment()}
+              placeholder="Add a comment..."
+              className="flex-1 rounded-lg bg-muted px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <button onClick={submitComment} className="rounded-lg gradient-femmly px-4 py-2 text-xs font-semibold text-primary-foreground">
+              Post
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.article>
   );
 };
