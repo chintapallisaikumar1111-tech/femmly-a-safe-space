@@ -9,7 +9,7 @@ const Scene3D = lazy(() => import("@/components/landing/Scene3D"));
 const quotes = [
   "Where women connect, empower & thrive.",
   "Your safe space. Your voice. Your world.",
-  "Built by women. For women. Always.",
+  "Built by Men. For women. Always.",
 ];
 
 const features = [
@@ -151,6 +151,9 @@ const Splash = () => {
             </div>
             <p className="text-[10px] text-muted-foreground/60">
               By continuing, you agree to our Terms of Service and Privacy Policy
+            </p>
+            <p className="text-[10px] text-muted-foreground font-mono mt-1">
+              © 2025 Femmly. All rights reserved.
             </p>
           </motion.div>
         </div>
