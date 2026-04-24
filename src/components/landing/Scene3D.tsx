@@ -1,11 +1,12 @@
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Float, Text3D, Center } from "@react-three/drei";
+import { OrbitControls, Float } from "@react-three/drei";
 import FloatingHearts from "./FloatingHearts";
-import { Suspense } from "react";
+import { Suspense, forwardRef } from "react";
+import * as THREE from "three";
 
-const GlowSphere = ({ position, color, size }: { position: [number, number, number]; color: string; size: number }) => (
-  <Float speed={2} rotationIntensity={0.3} floatIntensity={1.5}>
-    <mesh position={position}>
+const SphereMesh = forwardRef<THREE.Mesh, { position: [number, number, number]; color: string; size: number }>(
+  ({ position, color, size }, ref) => (
+    <mesh ref={ref} position={position}>
       <sphereGeometry args={[size, 32, 32]} />
       <meshStandardMaterial
         color={color}
@@ -17,6 +18,13 @@ const GlowSphere = ({ position, color, size }: { position: [number, number, numb
         emissiveIntensity={0.3}
       />
     </mesh>
+  )
+);
+SphereMesh.displayName = "SphereMesh";
+
+const GlowSphere = (props: { position: [number, number, number]; color: string; size: number }) => (
+  <Float speed={2} rotationIntensity={0.3} floatIntensity={1.5}>
+    <SphereMesh {...props} />
   </Float>
 );
 
