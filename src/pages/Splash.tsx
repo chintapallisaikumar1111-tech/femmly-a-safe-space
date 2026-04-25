@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Heart, Users, Sparkles, Star, Download } from "lucide-react";
-import { Suspense, lazy } from "react";
+import { Shield, Heart, Users, Sparkles, Star, Download, Apple, Smartphone, Play, X } from "lucide-react";
+import { Suspense, lazy, useState } from "react";
 import femmlyLogo from "@/assets/femmly-logo.png";
+import demoVideo from "@/assets/femmly-demo.mp4.asset.json";
 
 const Scene3D = lazy(() => import("@/components/landing/Scene3D"));
 
@@ -21,9 +22,41 @@ const features = [
 
 const Splash = () => {
   const navigate = useNavigate();
+  const [showVideo, setShowVideo] = useState(false);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
+      {/* Top Download Bar */}
+      <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-r from-primary/95 to-accent/95 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <div className="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Download size={16} className="text-primary-foreground flex-shrink-0" />
+            <span className="text-xs font-semibold text-primary-foreground truncate">
+              Get the Femmly App
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <a
+              href="https://github.com/chintapallisaikumar1111-tech/femmly-a-safe-space/releases/download/v1.0/Femmly.apk"
+              download="Femmly.apk"
+              className="flex items-center gap-1 rounded-lg bg-white/95 px-2.5 py-1.5 text-[11px] font-bold text-primary shadow-sm transition-transform active:scale-95"
+            >
+              <Smartphone size={12} />
+              Android
+            </a>
+            <a
+              href="https://apps.apple.com/app/femmly"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 rounded-lg bg-foreground/90 px-2.5 py-1.5 text-[11px] font-bold text-background shadow-sm transition-transform active:scale-95"
+            >
+              <Apple size={12} />
+              iOS
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* 3D Background */}
       <div className="absolute inset-0 z-0">
         <Suspense fallback={
@@ -37,7 +70,7 @@ const Splash = () => {
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* Top Section */}
-        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-12 pb-4">
+        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -86,6 +119,20 @@ const Splash = () => {
               </motion.p>
             ))}
           </motion.div>
+
+            {/* Watch Demo CTA */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.7 }}
+              onClick={() => setShowVideo(true)}
+              className="mb-4 flex items-center gap-2 rounded-full bg-card/70 backdrop-blur-md border border-primary/30 px-4 py-2 text-xs font-semibold text-foreground shadow-femmly transition-transform active:scale-95"
+            >
+              <div className="w-6 h-6 rounded-full gradient-femmly flex items-center justify-center">
+                <Play size={12} className="text-primary-foreground ml-0.5" fill="currentColor" />
+              </div>
+              Watch App Demo
+            </motion.button>
 
           {/* Feature Cards */}
           <motion.div
@@ -166,6 +213,39 @@ const Splash = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Demo Video Modal */}
+      {showVideo && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4"
+          onClick={() => setShowVideo(false)}
+        >
+          <button
+            onClick={() => setShowVideo(false)}
+            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-card/80 backdrop-blur-md flex items-center justify-center text-foreground shadow-lg"
+            aria-label="Close demo"
+          >
+            <X size={20} />
+          </button>
+          <div
+            className="relative w-full max-w-sm aspect-[9/16] rounded-3xl overflow-hidden shadow-femmly-lg border border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <video
+              src={demoVideo.url}
+              autoPlay
+              controls
+              playsInline
+              className="w-full h-full object-cover bg-black"
+            />
+          </div>
+          <p className="absolute bottom-6 left-0 right-0 text-center text-xs text-muted-foreground">
+            Femmly App Demo • Tap outside to close
+          </p>
+        </motion.div>
+      )}
     </div>
   );
 };
