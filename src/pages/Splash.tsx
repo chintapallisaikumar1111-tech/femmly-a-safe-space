@@ -213,6 +213,39 @@ const Splash = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Demo Video Modal */}
+      {showVideo && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 bg-background/95 backdrop-blur-lg flex items-center justify-center p-4"
+          onClick={() => setShowVideo(false)}
+        >
+          <button
+            onClick={() => setShowVideo(false)}
+            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-card/80 backdrop-blur-md flex items-center justify-center text-foreground shadow-lg"
+            aria-label="Close demo"
+          >
+            <X size={20} />
+          </button>
+          <div
+            className="relative w-full max-w-sm aspect-[9/16] rounded-3xl overflow-hidden shadow-femmly-lg border border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <video
+              src={demoVideo.url}
+              autoPlay
+              controls
+              playsInline
+              className="w-full h-full object-cover bg-black"
+            />
+          </div>
+          <p className="absolute bottom-6 left-0 right-0 text-center text-xs text-muted-foreground">
+            Femmly App Demo • Tap outside to close
+          </p>
+        </motion.div>
+      )}
     </div>
   );
 };
