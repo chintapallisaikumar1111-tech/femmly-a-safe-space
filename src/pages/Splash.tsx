@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Heart, Users, Sparkles, Star, Download, Apple, Smartphone } from "lucide-react";
-import { Suspense, lazy } from "react";
+import { Shield, Heart, Users, Sparkles, Star, Download, Apple, Smartphone, Play, X } from "lucide-react";
+import { Suspense, lazy, useState } from "react";
 import femmlyLogo from "@/assets/femmly-logo.png";
+import demoVideo from "@/assets/femmly-demo.mp4.asset.json";
 
 const Scene3D = lazy(() => import("@/components/landing/Scene3D"));
 
@@ -21,6 +22,7 @@ const features = [
 
 const Splash = () => {
   const navigate = useNavigate();
+  const [showVideo, setShowVideo] = useState(false);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -117,6 +119,20 @@ const Splash = () => {
               </motion.p>
             ))}
           </motion.div>
+
+            {/* Watch Demo CTA */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.7 }}
+              onClick={() => setShowVideo(true)}
+              className="mb-4 flex items-center gap-2 rounded-full bg-card/70 backdrop-blur-md border border-primary/30 px-4 py-2 text-xs font-semibold text-foreground shadow-femmly transition-transform active:scale-95"
+            >
+              <div className="w-6 h-6 rounded-full gradient-femmly flex items-center justify-center">
+                <Play size={12} className="text-primary-foreground ml-0.5" fill="currentColor" />
+              </div>
+              Watch App Demo
+            </motion.button>
 
           {/* Feature Cards */}
           <motion.div
