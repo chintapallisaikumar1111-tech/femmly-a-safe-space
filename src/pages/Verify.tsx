@@ -177,6 +177,22 @@ const Verify = () => {
                 <Camera size={18} />
                 Open Camera
               </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="user"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full rounded-xl border border-border bg-card py-3.5 text-sm font-semibold text-foreground transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                <Upload size={18} />
+                Upload Photo Instead
+              </button>
             </div>
           )}
 
