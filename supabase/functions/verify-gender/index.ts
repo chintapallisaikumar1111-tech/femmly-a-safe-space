@@ -40,12 +40,16 @@ serve(async (req) => {
       });
     }
 
-    const { imageBase64 } = await req.json();
-    if (!imageBase64) {
-      return new Response(JSON.stringify({ error: "No image provided" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const body = await req.json();
+    // Accept either legacy single image OR new 3-frame liveness payload
+    const frames: { front?: string; blink?: string; side?: string } =
+      body.frames || (body.imageBase64 ? { front: body.imageBase64 } : {});
+
+    if (!frames.front || !frames.blink || !frames.side) {
+      return new Response(
+        JSON.stringify({ error: "All 3 liveness frames required (front, blink, side)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Use Lovable AI (Gemini) for gender detection from selfie
@@ -64,28 +68,44 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
           {
             role: "system",
-            content: `You are a gender verification AI for a women-only platform. Analyze the selfie image and determine if the person appears to be female. 
-            
-Respond ONLY with a JSON object (no markdown, no code fences):
-{"gender": "female" or "male" or "unclear", "confidence": 0.0 to 1.0, "reason": "brief explanation"}
+            content: `You are the gender + liveness verification AI for "Femmly", a strictly women-only social platform.
 
-Be respectful and focus on visible facial features. If the image is unclear, blurry, not a face, or you cannot determine gender, set gender to "unclear" with low confidence.`
+You will be given 3 sequential selfies of the SAME person taken seconds apart:
+  1. FRONT  — face straight at camera, eyes open
+  2. BLINK  — eyes closed (blink moment)
+  3. SIDE   — head turned to the left or right side
+
+Your job is to confirm BOTH:
+  (A) Liveness — it is a real live human, not a photo of a photo, screen, mask, doll, or AI-generated image. The 3 frames must show natural human variation (different eye state, different head pose, consistent lighting/skin).
+  (B) Gender  — the person is clearly an adult or teen FEMALE. Reject if male, ambiguous, a child, a cartoon, an animal, or anything other than a real woman.
+
+Be strict. If liveness fails OR gender is not clearly female, you MUST reject.
+
+Respond ONLY with a single JSON object — no markdown, no code fences, no extra text:
+{
+  "gender": "female" | "male" | "unclear",
+  "is_live": true | false,
+  "blink_detected": true | false,
+  "head_turn_detected": true | false,
+  "same_person": true | false,
+  "confidence": 0.0 to 1.0,
+  "reason": "one short sentence explaining the decision"
+}`
           },
           {
             role: "user",
             content: [
-              {
-                type: "image_url",
-                image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
-              },
-              {
-                type: "text",
-                text: "Analyze this selfie for gender verification."
-              }
+              { type: "text", text: "Frame 1 of 3 — FRONT (eyes open, looking at camera):" },
+              { type: "image_url", image_url: { url: `data:image/jpeg;base64,${frames.front}` } },
+              { type: "text", text: "Frame 2 of 3 — BLINK (eyes closed):" },
+              { type: "image_url", image_url: { url: `data:image/jpeg;base64,${frames.blink}` } },
+              { type: "text", text: "Frame 3 of 3 — SIDE (head turned left or right):" },
+              { type: "image_url", image_url: { url: `data:image/jpeg;base64,${frames.side}` } },
+              { type: "text", text: "Analyze all 3 frames together for liveness + female gender verification. Respond with the JSON object only." }
             ]
           }
         ],
@@ -123,10 +143,16 @@ Be respectful and focus on visible facial features. If the image is unclear, blu
       result = { gender: "unclear", confidence: 0, reason: "Could not parse AI response" };
     }
 
-    const isApproved = result.gender === "female" && result.confidence >= 0.7;
+    const isApproved =
+      result.gender === "female" &&
+      result.is_live === true &&
+      result.same_person !== false &&
+      result.blink_detected === true &&
+      result.head_turn_detected === true &&
+      (typeof result.confidence === "number" ? result.confidence >= 0.7 : true);
 
     // Store the selfie in storage
-    const selfieBuffer = Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0));
+    const selfieBuffer = Uint8Array.from(atob(frames.front), c => c.charCodeAt(0));
     const selfieFileName = `${user.id}/${Date.now()}.jpg`;
     await supabase.storage.from("verification-selfies").upload(selfieFileName, selfieBuffer, {
       contentType: "image/jpeg",
@@ -150,11 +176,24 @@ Be respectful and focus on visible facial features. If the image is unclear, blu
     return new Response(JSON.stringify({
       verified: isApproved,
       confidence: result.confidence,
+      details: {
+        gender: result.gender,
+        is_live: result.is_live,
+        blink_detected: result.blink_detected,
+        head_turn_detected: result.head_turn_detected,
+        same_person: result.same_person,
+      },
       message: isApproved
-        ? "Welcome to Femmly! Your identity has been verified."
+        ? "Welcome to Femmly! Your live identity has been verified."
         : result.gender === "male"
-          ? "Femmly is a women-only platform. Your account will be reviewed."
-          : "We couldn't verify your identity clearly. A manual review will be conducted.",
+          ? "Account rejected. Femmly is a women-only platform."
+          : !result.is_live
+            ? "Liveness check failed. Please retry with a real, well-lit live selfie (no photos or screens)."
+            : !result.blink_detected
+              ? "We didn't detect a real blink. Please retry."
+              : !result.head_turn_detected
+                ? "We didn't detect a clear head turn. Please retry."
+                : "We couldn't clearly verify you as female. Please retry in better lighting.",
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
