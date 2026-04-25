@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Heart, Users, Sparkles, Star, Download } from "lucide-react";
+import { Shield, Heart, Users, Sparkles, Star, Download, Apple, Smartphone } from "lucide-react";
 import { Suspense, lazy } from "react";
 import femmlyLogo from "@/assets/femmly-logo.png";
 
@@ -24,6 +24,37 @@ const Splash = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
+      {/* Top Download Bar */}
+      <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-r from-primary/95 to-accent/95 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <div className="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Download size={16} className="text-primary-foreground flex-shrink-0" />
+            <span className="text-xs font-semibold text-primary-foreground truncate">
+              Get the Femmly App
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <a
+              href="https://github.com/chintapallisaikumar1111-tech/femmly-a-safe-space/releases/download/v1.0/Femmly.apk"
+              download="Femmly.apk"
+              className="flex items-center gap-1 rounded-lg bg-white/95 px-2.5 py-1.5 text-[11px] font-bold text-primary shadow-sm transition-transform active:scale-95"
+            >
+              <Smartphone size={12} />
+              Android
+            </a>
+            <a
+              href="https://apps.apple.com/app/femmly"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 rounded-lg bg-foreground/90 px-2.5 py-1.5 text-[11px] font-bold text-background shadow-sm transition-transform active:scale-95"
+            >
+              <Apple size={12} />
+              iOS
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* 3D Background */}
       <div className="absolute inset-0 z-0">
         <Suspense fallback={
@@ -37,7 +68,7 @@ const Splash = () => {
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* Top Section */}
-        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-12 pb-4">
+        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
