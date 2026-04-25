@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Camera, Shield, CheckCircle, XCircle, Loader2, RotateCcw } from "lucide-react";
+import { Camera, Shield, CheckCircle, XCircle, Loader2, RotateCcw, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,7 @@ const Verify = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { user, isVerified, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -22,24 +23,68 @@ const Verify = () => {
     if (isVerified) navigate("/feed", { replace: true });
   }, [isVerified, navigate]);
 
+  // Attach the live stream once <video> mounts (step === "camera")
+  useEffect(() => {
+    if (step === "camera" && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [step]);
+
+  // Stop camera tracks on unmount
+  useEffect(() => {
+    return () => {
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+  }, []);
+
   const startCamera = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast({
+        title: "Camera not supported",
+        description: "Use the Upload Photo option instead.",
+        variant: "destructive",
+      });
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: 640, height: 480 },
+        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
       setStep("camera");
-    } catch {
-      toast({ title: "Camera access denied. Please allow camera access.", variant: "destructive" });
+    } catch (err: any) {
+      console.error("getUserMedia failed:", err?.name, err?.message);
+      let description = "Allow camera access in your browser, or use Upload Photo.";
+      if (err?.name === "NotAllowedError") description = "Permission denied. Allow camera in site settings or use Upload Photo.";
+      else if (err?.name === "NotFoundError") description = "No camera detected. Use Upload Photo instead.";
+      else if (err?.name === "NotReadableError") description = "Camera in use by another app. Close it and try again.";
+      else if (err?.name === "SecurityError") description = "Camera blocked. Try Upload Photo.";
+      toast({ title: "Couldn't open camera", description, variant: "destructive" });
     }
   };
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Please select an image file", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setCapturedImage(dataUrl);
+      verifyGender(dataUrl);
+    };
+    reader.readAsDataURL(file);
   };
 
   const capturePhoto = useCallback(() => {
@@ -131,6 +176,22 @@ const Verify = () => {
               >
                 <Camera size={18} />
                 Open Camera
+              </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="user"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full rounded-xl border border-border bg-card py-3.5 text-sm font-semibold text-foreground transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                <Upload size={18} />
+                Upload Photo Instead
               </button>
             </div>
           )}
