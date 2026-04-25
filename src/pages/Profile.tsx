@@ -1,4 +1,4 @@
-import { Settings, Grid3X3, Bookmark, Shield, LogOut, UserCog, Users, UserPlus, Share2, ShieldCheck, Bell, HelpCircle, Lock } from "lucide-react";
+import { Settings, Grid3X3, Bookmark, Shield, LogOut, UserCog, Share2, ShieldCheck, Bell, HelpCircle, Lock, Sparkles } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { currentUser, exploreImages, users } from "@/lib/mock-data";
 import { motion } from "framer-motion";
@@ -64,20 +64,26 @@ const Profile = () => {
               </SheetHeader>
               <div className="mt-6 space-y-1">
                 {[
-                  { icon: UserCog, label: "Edit Profile", onClick: () => { setSettingsOpen(false); setEditOpen(true); } },
-                  { icon: ShieldCheck, label: "Privacy & Safety", onClick: () => toast({ title: "Privacy", description: "All settings are at maximum protection." }) },
-                  { icon: Bell, label: "Notifications", onClick: () => toast({ title: "Notifications", description: "Push & email preferences saved." }) },
-                  { icon: Lock, label: "Account Security", onClick: () => toast({ title: "Account secure", description: "2FA recommended." }) },
-                  { icon: HelpCircle, label: "Help & Support", onClick: () => toast({ title: "Support", description: "Email founder@femmly.app" }) },
-                  ...(isAdmin ? [{ icon: ShieldCheck, label: "Admin Panel", onClick: () => { setSettingsOpen(false); navigate("/admin"); } }] : []),
-                ].map(({ icon: Icon, label, onClick }) => (
+                  { icon: UserCog, label: "Edit Profile", path: "/settings/edit-profile" },
+                  { icon: ShieldCheck, label: "Privacy & Safety", path: "/settings/privacy" },
+                  { icon: Bell, label: "Notifications", path: "/settings/notifications" },
+                  { icon: Lock, label: "Account Security", path: "/settings/security" },
+                  { icon: HelpCircle, label: "Help & Support", path: "/settings/help" },
+                  { icon: Sparkles, label: "AI Assistant", path: "/settings/assistant", highlight: true },
+                  ...(isAdmin ? [{ icon: ShieldCheck, label: "Admin Panel", path: "/admin" }] : []),
+                ].map(({ icon: Icon, label, path, highlight }) => (
                   <button
                     key={label}
-                    onClick={onClick}
-                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-colors text-left"
+                    onClick={() => { setSettingsOpen(false); navigate(path); }}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors text-left ${
+                      highlight ? "gradient-femmly-soft border border-primary/30 hover:opacity-90" : "hover:bg-muted"
+                    }`}
                   >
                     <Icon size={18} className="text-primary" />
-                    <span className="text-sm font-medium text-foreground">{label}</span>
+                    <span className="text-sm font-medium text-foreground flex-1">{label}</span>
+                    {highlight && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-primary">New</span>
+                    )}
                   </button>
                 ))}
                 <div className="border-t border-border my-3" />
@@ -135,7 +141,7 @@ const Profile = () => {
         <div className="mt-4 flex gap-2">
           <motion.button
             whileTap={{ scale: 0.97 }}
-            onClick={() => setEditOpen(true)}
+            onClick={() => navigate("/settings/edit-profile")}
             className="flex-1 rounded-lg bg-muted py-2 text-sm font-semibold text-foreground"
           >
             Edit Profile

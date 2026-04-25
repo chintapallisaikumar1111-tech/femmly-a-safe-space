@@ -15,6 +15,12 @@ import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
+import EditProfile from "./pages/settings/EditProfile";
+import PrivacySafety from "./pages/settings/PrivacySafety";
+import Notifications from "./pages/settings/Notifications";
+import AccountSecurity from "./pages/settings/AccountSecurity";
+import HelpSupport from "./pages/settings/HelpSupport";
+import AIAssistant from "./pages/settings/AIAssistant";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +49,12 @@ const App = () => (
             <Route path="/create" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
             <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/settings/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+            <Route path="/settings/privacy" element={<ProtectedRoute><PrivacySafety /></ProtectedRoute>} />
+            <Route path="/settings/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/settings/security" element={<ProtectedRoute><AccountSecurity /></ProtectedRoute>} />
+            <Route path="/settings/help" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
+            <Route path="/settings/assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="*" element={<NotFound />} />
