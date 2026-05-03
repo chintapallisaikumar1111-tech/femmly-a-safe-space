@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Shield, Star, Download, Apple, Smartphone, Play, X, ArrowRight,
-  MessageCircle, Heart, Sparkles, Lock,
+  Star, Download, Apple, Smartphone, Play, X, ArrowRight,
+  MessageCircle, Heart,
 } from "lucide-react";
 import { useState } from "react";
 import femmlyLogo from "@/assets/femmly-logo.png";
