@@ -5,6 +5,8 @@ import {
   MessageCircle, Heart,
 } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import femmlyLogo from "@/assets/femmly-logo.png";
 import landingBg from "@/assets/landing-bg.jpg";
 import demoVideo from "@/assets/femmly-demo.mp4.asset.json";
@@ -37,6 +39,15 @@ const community = [
 const Splash = () => {
   const navigate = useNavigate();
   const [showVideo, setShowVideo] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+
+  const handleGetStarted = () => {
+    if (!agreed) {
+      toast.error("Please accept the Terms and Privacy Policy to continue.");
+      return;
+    }
+    navigate("/auth");
+  };
 
   return (
     <div className="dark relative min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -97,8 +108,9 @@ const Splash = () => {
             className="mt-10 flex flex-col gap-3 max-w-sm mx-auto"
           >
             <button
-              onClick={() => navigate("/auth")}
-              className="group w-full rounded-2xl gradient-femmly py-4 text-base font-semibold text-primary-foreground shadow-femmly-lg transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+              onClick={handleGetStarted}
+              disabled={!agreed}
+              className="group w-full rounded-2xl gradient-femmly py-4 text-base font-semibold text-primary-foreground shadow-femmly-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Star size={18} fill="currentColor" />
               Get Started Free
@@ -117,6 +129,27 @@ const Splash = () => {
               <Play size={16} />
               Watch App Demo
             </button>
+
+            <label className="mt-2 flex items-start gap-3 text-left cursor-pointer select-none rounded-xl border border-border/50 bg-card/40 backdrop-blur-md p-3">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-primary cursor-pointer"
+                aria-label="Agree to Terms and Privacy Policy"
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                I'm 16+ and agree to Femmly's{" "}
+                <Link to="/terms" className="text-primary font-semibold underline underline-offset-2">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link to="/privacy" className="text-primary font-semibold underline underline-offset-2">
+                  Privacy Policy
+                </Link>
+                .
+              </span>
+            </label>
           </motion.div>
 
           <motion.div
@@ -294,6 +327,15 @@ const Splash = () => {
         <footer className="px-6 pt-10 pb-32 max-w-2xl mx-auto text-center">
           <div className="mx-auto w-px h-8 bg-border/60" />
           <img src={femmlyLogo} alt="Femmly" className="mx-auto mt-6 h-10 w-10 opacity-70" />
+          <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+            <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+              Privacy Policy
+            </Link>
+            <span className="text-muted-foreground/40">·</span>
+            <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+              Terms of Service
+            </Link>
+          </div>
           <p className="mt-4 text-xs text-muted-foreground">
             Founder &amp; Published by <span className="font-semibold text-foreground">Sai Kumar Chintapalli</span>
           </p>

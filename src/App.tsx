@@ -21,6 +21,8 @@ import Notifications from "./pages/settings/Notifications";
 import AccountSecurity from "./pages/settings/AccountSecurity";
 import HelpSupport from "./pages/settings/HelpSupport";
 import AIAssistant from "./pages/settings/AIAssistant";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import TermsOfService from "./pages/legal/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,8 @@ const App = () => (
             <Route path="/welcome" element={<Splash />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify" element={<Verify />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
