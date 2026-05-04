@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import {
   Star, Download, Apple, Smartphone, Play, X, ArrowRight,
-  MessageCircle, Heart,
+  MessageCircle, Heart, Sparkles,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import femmlyLogo from "@/assets/femmly-logo.png";
@@ -40,6 +40,19 @@ const Splash = () => {
   const navigate = useNavigate();
   const [showVideo, setShowVideo] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll();
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 40 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+  };
+  const stagger = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.12 } },
+  };
 
   const handleGetStarted = () => {
     if (!agreed) {
@@ -51,36 +64,78 @@ const Splash = () => {
 
   return (
     <div className="dark relative min-h-screen overflow-x-hidden bg-background text-foreground">
-      {/* Fixed background image with dark overlay */}
-      <div
+      {/* Fixed background image with parallax + zoom */}
+      <motion.div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${landingBg})` }}
+        style={{ backgroundImage: `url(${landingBg})`, y: bgY, scale: bgScale }}
         aria-hidden
       />
       <div className="fixed inset-0 z-0 bg-background/85" aria-hidden />
       <div className="fixed inset-0 z-0 bg-gradient-to-b from-background/40 via-background/70 to-background pointer-events-none" aria-hidden />
 
+      {/* Floating ambient orbs */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden>
+        <motion.div
+          className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-primary/20 blur-3xl"
+          animate={{ x: [0, 40, 0], y: [0, 60, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-pink-500/20 blur-3xl"
+          animate={{ x: [0, -50, 0], y: [0, -40, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-20 left-1/4 w-64 h-64 rounded-full bg-purple-500/15 blur-3xl"
+          animate={{ x: [0, 30, 0], y: [0, -30, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Floating sparkles */}
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute"
+            style={{ left: `${10 + i * 11}%`, top: `${15 + (i * 9) % 70}%` }}
+            animate={{ y: [0, -20, 0], opacity: [0.3, 1, 0.3] }}
+            transition={{ duration: 3 + i * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
+          >
+            <Sparkles size={10 + (i % 3) * 4} className="text-primary/60" />
+          </motion.div>
+        ))}
+      </div>
+
       {/* Page content */}
       <main className="relative z-10">
         {/* HERO */}
-        <section className="px-6 pt-16 pb-20 max-w-2xl mx-auto text-center">
+        <section ref={heroRef} className="px-6 pt-16 pb-20 max-w-2xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] text-primary uppercase"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            <motion.span
+              className="w-1.5 h-1.5 rounded-full bg-primary"
+              animate={{ scale: [1, 1.6, 1], opacity: [1, 0.5, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity }}
+            />
             Women-only · AI Verified
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
+            initial={{ opacity: 0, scale: 0.6, rotate: -20 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ delay: 0.1, duration: 0.9, type: "spring", bounce: 0.5 }}
+            whileHover={{ scale: 1.08, rotate: 6 }}
             className="mt-8 mx-auto h-20 w-20 rounded-2xl bg-card/80 backdrop-blur-md border border-border/60 flex items-center justify-center shadow-femmly-lg"
           >
-            <img src={femmlyLogo} alt="Femmly logo" className="h-14 w-14" />
+            <motion.img
+              src={femmlyLogo}
+              alt="Femmly logo"
+              className="h-14 w-14"
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
           </motion.div>
 
           <motion.h1
@@ -96,7 +151,7 @@ const Splash = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.7 }}
-            className="mt-2 font-display text-5xl sm:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary via-purple-300 to-pink-300 bg-clip-text text-transparent"
+            className="mt-2 font-display text-5xl sm:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary via-purple-300 to-pink-300 bg-[length:200%_auto] bg-clip-text text-transparent animate-[shimmer_4s_linear_infinite]"
           >
             Real.
           </motion.h2>
@@ -116,28 +171,41 @@ const Splash = () => {
             transition={{ delay: 0.5 }}
             className="mt-10 flex flex-col gap-3 max-w-sm mx-auto"
           >
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03, boxShadow: "0 20px 40px -10px hsl(var(--primary) / 0.6)" }}
+              whileTap={{ scale: 0.97 }}
               onClick={handleGetStarted}
               disabled={!agreed}
-              className="group w-full rounded-2xl gradient-femmly py-4 text-base font-semibold text-primary-foreground shadow-femmly-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative overflow-hidden w-full rounded-2xl gradient-femmly py-4 text-base font-semibold text-primary-foreground shadow-femmly-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Star size={18} fill="currentColor" />
+              <motion.span
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                animate={{ x: ["-100%", "100%"] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <Star size={18} fill="currentColor" className="relative z-10" />
               Get Started Free
-              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-            </button>
-            <button
+              <ArrowRight size={18} className="relative z-10 transition-transform group-hover:translate-x-1" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => navigate("/auth?mode=login")}
-              className="w-full rounded-2xl border border-border bg-card/60 backdrop-blur-md py-4 text-base font-semibold text-foreground transition-transform active:scale-[0.98]"
+              className="w-full rounded-2xl border border-border bg-card/60 backdrop-blur-md py-4 text-base font-semibold text-foreground"
             >
               Sign In
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setShowVideo(true)}
-              className="w-full rounded-2xl border border-pink-400/40 bg-pink-500/10 backdrop-blur-md py-4 text-base font-semibold text-pink-300 transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+              className="w-full rounded-2xl border border-pink-400/40 bg-pink-500/10 backdrop-blur-md py-4 text-base font-semibold text-pink-300 flex items-center justify-center gap-2"
             >
-              <Play size={16} />
+              <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.6, repeat: Infinity }}>
+                <Play size={16} />
+              </motion.span>
               Watch App Demo
-            </button>
+            </motion.button>
 
             <label className="mt-2 flex items-start gap-3 text-left cursor-pointer select-none rounded-xl border border-border/50 bg-card/40 backdrop-blur-md p-3">
               <input
@@ -185,19 +253,37 @@ const Splash = () => {
         </section>
 
         {/* FEED PREVIEW */}
-        <section className="px-6 py-16 max-w-2xl mx-auto text-center">
-          <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-primary">See it in action</p>
-          <h2 className="mt-3 font-display text-4xl sm:text-5xl font-bold">A feed built for you</h2>
-          <p className="mt-3 text-sm text-muted-foreground">Real posts, real women, real moments.</p>
+        <motion.section
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-80px" }}
+          className="px-6 py-16 max-w-2xl mx-auto text-center"
+        >
+          <motion.p variants={fadeUp} className="text-[11px] font-bold tracking-[0.2em] uppercase text-primary">See it in action</motion.p>
+          <motion.h2 variants={fadeUp} className="mt-3 font-display text-4xl sm:text-5xl font-bold">A feed built for you</motion.h2>
+          <motion.p variants={fadeUp} className="mt-3 text-sm text-muted-foreground">Real posts, real women, real moments.</motion.p>
 
-          <div className="mt-10 mx-auto max-w-xs rounded-3xl bg-card/80 backdrop-blur-xl border border-border/60 shadow-femmly-lg overflow-hidden">
+          <motion.div
+            variants={fadeUp}
+            whileHover={{ y: -6, rotateX: 2, rotateY: -2 }}
+            style={{ transformPerspective: 1000 }}
+            className="mt-10 mx-auto max-w-xs rounded-3xl bg-card/80 backdrop-blur-xl border border-border/60 shadow-femmly-lg overflow-hidden"
+          >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
               <img src={femmlyLogo} alt="" className="w-7 h-7" />
               <span className="font-display text-base font-semibold text-primary">femmly</span>
               <img src={avatar2} alt="" className="w-7 h-7 rounded-full object-cover" />
             </div>
             {community.map((p, i) => (
-              <div key={i} className="px-4 py-3 border-b border-border/30 last:border-0 text-left">
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15, duration: 0.5 }}
+                className="px-4 py-3 border-b border-border/30 last:border-0 text-left"
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <img src={p.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
                   <div>
@@ -215,16 +301,27 @@ const Splash = () => {
                 </p>
                 <img src={p.img} alt="" className="w-full h-32 object-cover rounded-lg" />
                 <div className="flex items-center gap-3 mt-2 text-muted-foreground">
-                  <span className="flex items-center gap-1 text-[11px]"><Heart size={12} className="text-pink-400" fill="currentColor" /> {[48,91,134,76][i]}</span>
+                  <span className="flex items-center gap-1 text-[11px]">
+                    <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}>
+                      <Heart size={12} className="text-pink-400" fill="currentColor" />
+                    </motion.span>
+                    {[48,91,134,76][i]}
+                  </span>
                   <span className="flex items-center gap-1 text-[11px]"><MessageCircle size={12} /> {[12,23,37,18][i]}</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
 
         {/* STATS */}
-        <section className="px-6 py-12 max-w-2xl mx-auto">
+        <motion.section
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-60px" }}
+          className="px-6 py-12 max-w-2xl mx-auto"
+        >
           <div className="rounded-3xl border border-border/60 bg-card/60 backdrop-blur-md p-4">
             <div className="grid grid-cols-3 gap-3">
               {[
@@ -232,28 +329,50 @@ const Splash = () => {
                 { v: "24/7", l: "Safe Moderation" },
                 { v: "∞", l: "Private Chats" },
               ].map((s) => (
-                <div key={s.l} className="rounded-2xl border border-border/40 p-4 text-center">
+                <motion.div
+                  key={s.l}
+                  variants={fadeUp}
+                  whileHover={{ scale: 1.06, y: -4 }}
+                  className="rounded-2xl border border-border/40 p-4 text-center cursor-default"
+                >
                   <p className="font-display text-2xl font-bold text-foreground">{s.v}</p>
                   <p className="mt-1 text-[10px] tracking-[0.18em] uppercase text-muted-foreground">{s.l}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* COMMUNITY GRID */}
-        <section className="px-6 py-16 max-w-2xl mx-auto text-center">
-          <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-pink-400">Community</p>
-          <h2 className="mt-3 font-display text-4xl sm:text-5xl font-bold">Women who inspire</h2>
+        <motion.section
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-80px" }}
+          className="px-6 py-16 max-w-2xl mx-auto text-center"
+        >
+          <motion.p variants={fadeUp} className="text-[11px] font-bold tracking-[0.2em] uppercase text-pink-400">Community</motion.p>
+          <motion.h2 variants={fadeUp} className="mt-3 font-display text-4xl sm:text-5xl font-bold">Women who inspire</motion.h2>
 
           <div className="mt-10 grid grid-cols-2 gap-4">
-            {community.map((c) => (
+            {community.map((c, i) => (
               <motion.div
                 key={c.name}
-                whileHover={{ y: -4 }}
+                initial={{ opacity: 0, scale: 0.85, y: 30 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                whileHover={{ y: -8, scale: 1.03, rotate: i % 2 === 0 ? 1 : -1 }}
                 className="relative aspect-square rounded-2xl overflow-hidden border border-border/40"
               >
-                <img src={c.img} alt={c.name} loading="lazy" className="w-full h-full object-cover" />
+                <motion.img
+                  src={c.img}
+                  alt={c.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                  whileHover={{ scale: 1.15 }}
+                  transition={{ duration: 0.6 }}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
                   <img src={c.avatar} alt="" className="w-7 h-7 rounded-full border border-white/40 object-cover" />
@@ -265,82 +384,132 @@ const Splash = () => {
               </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
 
         {/* STORIES */}
-        <section className="px-6 py-16 max-w-2xl mx-auto text-center">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold">Stories, live & shared</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Moments that matter, for 24 hours.</p>
+        <motion.section
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-60px" }}
+          className="px-6 py-16 max-w-2xl mx-auto text-center"
+        >
+          <motion.h2 variants={fadeUp} className="font-display text-3xl sm:text-4xl font-bold">Stories, live & shared</motion.h2>
+          <motion.p variants={fadeUp} className="mt-2 text-sm text-muted-foreground">Moments that matter, for 24 hours.</motion.p>
           <div className="mt-8 flex items-center justify-center gap-5 flex-wrap">
-            {stories.map((s) => (
-              <div key={s.name} className="flex flex-col items-center gap-1.5">
-                <div className="story-ring">
+            {stories.map((s, i) => (
+              <motion.div
+                key={s.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                whileHover={{ y: -6, scale: 1.1 }}
+                className="flex flex-col items-center gap-1.5 cursor-pointer"
+              >
+                <motion.div
+                  className="story-ring"
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                >
                   <img src={s.img} alt={s.name} className="w-16 h-16 rounded-full object-cover bg-background border-2 border-background" />
-                </div>
+                </motion.div>
                 <span className="text-[11px] text-muted-foreground">{s.name}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
 
         {/* JOIN MOVEMENT */}
-        <section className="px-6 py-16 max-w-2xl mx-auto">
-          <div className="rounded-3xl border border-border/60 bg-card/60 backdrop-blur-md p-8 text-center">
+        <motion.section
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.8 }}
+          className="px-6 py-16 max-w-2xl mx-auto"
+        >
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="rounded-3xl border border-border/60 bg-card/60 backdrop-blur-md p-8 text-center"
+          >
             <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-primary">Join the movement</p>
             <h2 className="mt-3 font-display text-3xl sm:text-4xl font-bold">A calmer, safer social home</h2>
             <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
               Every scroll should feel intentional — soft motion, warm colors, and a community-first rhythm all the way to the bottom.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/auth")}
-                className="rounded-2xl gradient-femmly px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-femmly-lg active:scale-[0.98] transition-transform"
+                className="rounded-2xl gradient-femmly px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-femmly-lg"
               >
                 Create account
-              </button>
-              <a
+              </motion.button>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 href={APK_URL}
                 download="Femmly.apk"
-                className="rounded-2xl border border-border bg-card/70 px-8 py-3.5 text-sm font-semibold text-foreground active:scale-[0.98] transition-transform"
+                className="inline-block rounded-2xl border border-border bg-card/70 px-8 py-3.5 text-sm font-semibold text-foreground"
               >
                 Install app
-              </a>
+              </motion.a>
             </div>
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
 
         {/* DOWNLOAD APP */}
-        <section className="px-6 py-12 max-w-2xl mx-auto">
+        <motion.section
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.8 }}
+          className="px-6 py-12 max-w-2xl mx-auto"
+        >
           <div className="rounded-3xl border border-border/60 bg-card/60 backdrop-blur-md p-8 text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/70 px-3 py-1 text-[11px] font-semibold text-muted-foreground">
-              <Download size={12} /> Download the App
+              <motion.span animate={{ y: [0, -2, 0] }} transition={{ duration: 1.4, repeat: Infinity }}>
+                <Download size={12} />
+              </motion.span>
+              Download the App
             </span>
             <h2 className="mt-4 font-display text-3xl font-bold">Take Femmly with you</h2>
             <p className="mt-2 text-sm text-muted-foreground">Android & iOS. Free forever.</p>
             <div className="mt-6 grid grid-cols-2 gap-3 max-w-md mx-auto">
-              <a
+              <motion.a
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
                 href={APK_URL}
                 download="Femmly.apk"
-                className="flex items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 py-3.5 text-sm font-semibold text-primary active:scale-[0.98] transition-transform"
+                className="flex items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 py-3.5 text-sm font-semibold text-primary"
               >
                 <Smartphone size={16} /> Android
-              </a>
-              <a
+              </motion.a>
+              <motion.a
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
                 href="https://apps.apple.com/app/femmly"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 rounded-2xl border border-accent/50 bg-accent/10 py-3.5 text-sm font-semibold text-foreground active:scale-[0.98] transition-transform"
+                className="flex items-center justify-center gap-2 rounded-2xl border border-accent/50 bg-accent/10 py-3.5 text-sm font-semibold text-foreground"
               >
                 <Apple size={16} /> iOS
-              </a>
+              </motion.a>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* FOOTER */}
         <footer className="px-6 pt-10 pb-32 max-w-2xl mx-auto text-center">
           <div className="mx-auto w-px h-8 bg-border/60" />
-          <img src={femmlyLogo} alt="Femmly" className="mx-auto mt-6 h-10 w-10 opacity-70" />
+          <motion.img
+            src={femmlyLogo}
+            alt="Femmly"
+            className="mx-auto mt-6 h-10 w-10 opacity-70"
+            animate={{ rotate: [0, 8, -8, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
           <div className="mt-4 flex items-center justify-center gap-4 text-xs">
             <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
               Privacy Policy
@@ -359,13 +528,19 @@ const Splash = () => {
 
       {/* Sticky bottom CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-4 pt-3 bg-gradient-to-t from-background via-background/90 to-transparent safe-bottom">
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          animate={{ boxShadow: ["0 10px 30px -10px hsl(var(--primary)/0.4)", "0 15px 40px -10px hsl(var(--primary)/0.7)", "0 10px 30px -10px hsl(var(--primary)/0.4)"] }}
+          transition={{ boxShadow: { duration: 2.5, repeat: Infinity } }}
           onClick={() => navigate("/auth")}
-          className="w-full max-w-md mx-auto block rounded-2xl gradient-femmly py-4 text-sm font-semibold text-primary-foreground shadow-femmly-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          className="w-full max-w-md mx-auto rounded-2xl gradient-femmly py-4 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2"
         >
-          <Star size={16} fill="currentColor" />
+          <motion.span animate={{ rotate: [0, 360] }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }}>
+            <Star size={16} fill="currentColor" />
+          </motion.span>
           Join Femmly — It's Free
-        </button>
+        </motion.button>
       </div>
 
       {/* Demo Video Modal */}
