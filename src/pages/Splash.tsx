@@ -361,7 +361,7 @@ const Splash = () => {
                 initial={{ opacity: 0, scale: 0.85, y: 30 }}
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ delay: i * 0.1, duration: 0.6, ease: "easeOut" }}
                 whileHover={{ y: -8, scale: 1.03, rotate: i % 2 === 0 ? 1 : -1 }}
                 className="relative aspect-square rounded-2xl overflow-hidden border border-border/40"
               >
