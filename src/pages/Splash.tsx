@@ -92,6 +92,15 @@ const Splash = () => {
             Femmly
           </motion.h1>
 
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.7 }}
+            className="mt-2 font-display text-5xl sm:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary via-purple-300 to-pink-300 bg-clip-text text-transparent"
+          >
+            Real.
+          </motion.h2>
+
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -187,22 +196,27 @@ const Splash = () => {
               <span className="font-display text-base font-semibold text-primary">femmly</span>
               <img src={avatar2} alt="" className="w-7 h-7 rounded-full object-cover" />
             </div>
-            {community.slice(0, 2).map((p, i) => (
+            {community.map((p, i) => (
               <div key={i} className="px-4 py-3 border-b border-border/30 last:border-0 text-left">
                 <div className="flex items-center gap-2 mb-2">
                   <img src={p.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
                   <div>
                     <p className="text-xs font-semibold">{p.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{i === 0 ? "2m ago" : "15m ago"}</p>
+                    <p className="text-[10px] text-muted-foreground">{["2m ago","15m ago","1h ago","3h ago"][i]}</p>
                   </div>
                 </div>
                 <p className="text-xs mb-2">
-                  {i === 0 ? "Morning run done ✨ Feeling unstoppable today!" : "Finally tried that recipe — turned out amazing 🍝"}
+                  {[
+                    "Morning run done ✨ Feeling unstoppable today!",
+                    "Finally tried that recipe — turned out amazing 🍜",
+                    "Sunsets hit different when you're present 🌅",
+                    "A little journaling and a lot more peace today 🤍",
+                  ][i]}
                 </p>
                 <img src={p.img} alt="" className="w-full h-32 object-cover rounded-lg" />
                 <div className="flex items-center gap-3 mt-2 text-muted-foreground">
-                  <span className="flex items-center gap-1 text-[11px]"><Heart size={12} className="text-pink-400" fill="currentColor" /> {48 - i * 12}</span>
-                  <span className="flex items-center gap-1 text-[11px]"><MessageCircle size={12} /> 12</span>
+                  <span className="flex items-center gap-1 text-[11px]"><Heart size={12} className="text-pink-400" fill="currentColor" /> {[48,91,134,76][i]}</span>
+                  <span className="flex items-center gap-1 text-[11px]"><MessageCircle size={12} /> {[12,23,37,18][i]}</span>
                 </div>
               </div>
             ))}
