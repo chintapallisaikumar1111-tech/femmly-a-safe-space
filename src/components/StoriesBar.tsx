@@ -1,12 +1,25 @@
 import { stories } from "@/lib/mock-data";
-import { Plus, X } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 const StoriesBar = () => {
-  const [active, setActive] = useState<typeof stories[0] | null>(null);
+  // Other stories (excludes "your story")
+  const list = stories.slice(1);
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
+  const active = activeIdx !== null ? list[activeIdx] : null;
+
+  const next = () => {
+    if (activeIdx === null) return;
+    if (activeIdx < list.length - 1) setActiveIdx(activeIdx + 1);
+    else setActiveIdx(null); // close after last
+  };
+  const prev = () => {
+    if (activeIdx === null) return;
+    if (activeIdx > 0) setActiveIdx(activeIdx - 1);
+  };
   const { toast } = useToast();
   return (
     <div className="border-b border-border px-4 py-3">
@@ -33,10 +46,10 @@ const StoriesBar = () => {
         </motion.button>
 
         {/* Other stories */}
-        {stories.slice(1).map((story, i) => (
+        {list.map((story, i) => (
           <motion.button
             key={story.id}
-            onClick={() => setActive(story)}
+            onClick={() => setActiveIdx(i)}
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -59,29 +72,74 @@ const StoriesBar = () => {
         ))}
       </div>
 
-      <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
+      <Dialog open={activeIdx !== null} onOpenChange={(o) => !o && setActiveIdx(null)}>
         <DialogContent className="max-w-xs p-0 overflow-hidden bg-foreground border-0">
           {active && (
             <div className="relative aspect-[9/16] flex flex-col">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-background/30">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 5, ease: "linear" }}
-                  onAnimationComplete={() => setActive(null)}
-                  className="h-full bg-background"
-                />
+              {/* Segmented progress bars: one per story */}
+              <div className="absolute top-2 left-2 right-2 z-20 flex gap-1">
+                {list.map((_, i) => (
+                  <div key={i} className="flex-1 h-0.5 bg-background/30 rounded-full overflow-hidden">
+                    {i < activeIdx! && <div className="h-full w-full bg-background" />}
+                    {i === activeIdx && (
+                      <motion.div
+                        key={`p-${activeIdx}`}
+                        initial={{ width: "0%" }}
+                        animate={{ width: "100%" }}
+                        transition={{ duration: 5, ease: "linear" }}
+                        onAnimationComplete={next}
+                        className="h-full bg-background"
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
+              {/* Tap zones: left = prev, right = next */}
+              <button
+                aria-label="Previous story"
+                onClick={prev}
+                className="absolute left-0 top-0 bottom-0 w-1/3 z-10"
+              />
+              <button
+                aria-label="Next story"
+                onClick={next}
+                className="absolute right-0 top-0 bottom-0 w-1/3 z-10"
+              />
+              {/* Visible chevrons */}
+              {activeIdx! > 0 && (
+                <button onClick={prev} className="absolute left-1 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-background/30 text-background">
+                  <ChevronLeft size={18} />
+                </button>
+              )}
+              {activeIdx! < list.length - 1 && (
+                <button onClick={next} className="absolute right-1 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-background/30 text-background">
+                  <ChevronRight size={18} />
+                </button>
+              )}
               <div className="absolute top-3 left-3 right-3 flex items-center gap-2 z-10">
                 <img src={active.user.avatar} alt={active.user.username} className="h-8 w-8 rounded-full object-cover border-2 border-background" />
                 <span className="text-xs font-semibold text-background">{active.user.username}</span>
-                <button onClick={() => setActive(null)} className="ml-auto text-background"><X size={20} /></button>
+                <button onClick={() => setActiveIdx(null)} className="ml-auto text-background z-20"><X size={20} /></button>
               </div>
-              <img src={active.user.avatar} alt="" className="w-full h-full object-cover opacity-70" />
+              <motion.img
+                key={active.id}
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 0.7, scale: 1 }}
+                transition={{ duration: 0.4 }}
+                src={active.user.avatar}
+                alt=""
+                className="w-full h-full object-cover"
+              />
               <div className="absolute inset-0 flex items-center justify-center p-6">
-                <p className="text-center text-background font-display text-xl drop-shadow-lg">
+                <motion.p
+                  key={active.id + "-text"}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.4 }}
+                  className="text-center text-background font-display text-xl drop-shadow-lg"
+                >
                   ✨ Sharing the day with my Femmly sisters ✨
-                </p>
+                </motion.p>
               </div>
             </div>
           )}
