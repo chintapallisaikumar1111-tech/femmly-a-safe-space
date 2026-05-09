@@ -141,3 +141,61 @@ export const posts: Post[] = [
 ];
 
 export const exploreImages = [post1, post2, post3, post4, post1, post2, post3, post4, post1];
+
+// Tagged explore items for AI-powered search
+export interface ExploreItem {
+  id: string;
+  src: string;
+  caption: string;
+  tags: string[];
+}
+
+export const exploreItems: ExploreItem[] = [
+  { id: "e1", src: post1, caption: "Quiet morning, soft light, journaling with tea", tags: ["wellness", "mindfulness", "morning", "selfcare", "journaling", "aesthetic"] },
+  { id: "e2", src: post2, caption: "Sunrise yoga on the rooftop", tags: ["wellness", "yoga", "fitness", "morning", "mindfulness"] },
+  { id: "e3", src: post3, caption: "Healthy berry breakfast bowl", tags: ["food", "healthyeating", "breakfast", "nutrition", "selfcare"] },
+  { id: "e4", src: post4, caption: "Building my startup from a coffee shop", tags: ["entrepreneur", "business", "womenintech", "startup", "work"] },
+  { id: "e5", src: post1, caption: "Pastel art studio vibes", tags: ["art", "creative", "studio", "design", "aesthetic"] },
+  { id: "e6", src: post2, caption: "Beach sunset travel diary — Bali", tags: ["travel", "beach", "sunset", "adventure", "wanderlust"] },
+  { id: "e7", src: post3, caption: "Vegan brunch with friends", tags: ["food", "vegan", "brunch", "friends", "lifestyle"] },
+  { id: "e8", src: post4, caption: "Pitching to investors today!", tags: ["entrepreneur", "business", "career", "ambition", "womenintech"] },
+  { id: "e9", src: post1, caption: "Cozy reading corner, candles & books", tags: ["selfcare", "reading", "cozy", "home", "mindfulness"] },
+  { id: "e10", src: post2, caption: "Trail run in the mountains", tags: ["fitness", "running", "outdoors", "nature", "wellness"] },
+  { id: "e11", src: post3, caption: "Easy weeknight pasta recipe", tags: ["food", "recipe", "cooking", "italian", "lifestyle"] },
+  { id: "e12", src: post4, caption: "Coworking with my women founders circle", tags: ["entrepreneur", "community", "womenintech", "career", "networking"] },
+];
+
+// Generate a richer follower/following list
+const NAMES = [
+  ["Maya", "Patel"], ["Zara", "Khan"], ["Olivia", "Chen"], ["Ava", "Müller"],
+  ["Isla", "Tanaka"], ["Lila", "Rossi"], ["Nora", "Andersen"], ["Sofia", "Garcia"],
+  ["Hana", "Kim"], ["Mira", "Singh"], ["Eva", "Ivanova"], ["Yara", "Haddad"],
+  ["Ines", "Da Silva"], ["Anya", "Petrova"], ["Camila", "Lopez"], ["Tara", "O'Connor"],
+  ["Léa", "Moreau"], ["Jade", "Dubois"], ["Sana", "Ahmed"], ["Ruby", "Walsh"],
+  ["Asha", "Nair"], ["Freya", "Hansen"], ["Maeve", "Kelly"], ["Noor", "Said"],
+  ["Lina", "Becker"], ["Aiko", "Sato"], ["Rhea", "Mehta"], ["Zoe", "Brown"],
+  ["Thea", "Fischer"], ["Amelie", "Laurent"],
+];
+const AVATARS = [avatar1, avatar2, avatar3, avatar4];
+const BIOS = [
+  "Coffee, code & creativity ☕",
+  "Photographer · light chaser 📸",
+  "Yoga teacher & soul-searcher 🧘‍♀️",
+  "Founder building cool things ✨",
+  "Mindful living, daily 🌿",
+  "Adventures & sunsets 🌅",
+  "Art, words & quiet mornings 📖",
+  "Wellness coach for busy women 💜",
+];
+
+export const followerList: User[] = NAMES.map(([first, last], i) => ({
+  id: `f${i + 1}`,
+  username: `${first.toLowerCase()}.${last.toLowerCase().replace(/[^a-z]/g, "")}`,
+  displayName: `${first} ${last}`,
+  avatar: AVATARS[i % AVATARS.length],
+  bio: BIOS[i % BIOS.length],
+  followers: 100 + i * 73,
+  following: 50 + i * 11,
+  posts: 5 + (i % 40),
+  isVerified: i % 4 === 0,
+}));
