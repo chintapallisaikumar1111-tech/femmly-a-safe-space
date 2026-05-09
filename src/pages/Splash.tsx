@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import {
   Star, Download, Apple, Smartphone, Play, X, ArrowRight,
   MessageCircle, Heart, Sparkles,
@@ -42,16 +42,34 @@ const Splash = () => {
   const [agreed, setAgreed] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
-  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+  // Smooth progress for indicator + parallax
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 80, damping: 20, mass: 0.4 });
+  const bgY = useTransform(smoothProgress, [0, 1], ["0%", "30%"]);
+  const bgScale = useTransform(smoothProgress, [0, 1], [1, 1.15]);
 
+  // Hero scroll-driven choreography (tied to first viewport)
+  const { scrollYProgress: heroProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroOpacity = useTransform(heroProgress, [0, 0.6, 1], [1, 0.6, 0]);
+  const heroY = useTransform(heroProgress, [0, 1], [0, -120]);
+  const heroScale = useTransform(heroProgress, [0, 1], [1, 0.92]);
+  const heroBlur = useTransform(heroProgress, [0, 1], ["blur(0px)", "blur(6px)"]);
+
+  // Unified easing & timings across every section reveal
+  const EASE = [0.22, 1, 0.36, 1] as const;
   const fadeUp = {
-    hidden: { opacity: 0, y: 40 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" as const } },
+    hidden: { opacity: 0, y: 48 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.9, ease: EASE } },
   };
   const stagger = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.12 } },
+    show: { transition: { staggerChildren: 0.14, delayChildren: 0.05 } },
+  };
+  const sectionReveal = {
+    hidden: { opacity: 0, y: 60 },
+    show: { opacity: 1, y: 0, transition: { duration: 1, ease: EASE, staggerChildren: 0.14, delayChildren: 0.08 } },
   };
 
   const handleGetStarted = () => {
@@ -64,6 +82,13 @@ const Splash = () => {
 
   return (
     <div className="dark relative min-h-screen overflow-x-hidden bg-background text-foreground">
+      {/* Scroll progress indicator */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 z-50 h-[3px] origin-left bg-gradient-to-r from-primary via-purple-400 to-pink-400"
+        style={{ scaleX: smoothProgress }}
+        aria-hidden
+      />
+
       {/* Fixed background image with parallax + zoom */}
       <motion.div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -107,7 +132,11 @@ const Splash = () => {
       {/* Page content */}
       <main className="relative z-10">
         {/* HERO */}
-        <section ref={heroRef} className="px-6 pt-16 pb-20 max-w-2xl mx-auto text-center">
+        <motion.section
+          ref={heroRef}
+          style={{ opacity: heroOpacity, y: heroY, scale: heroScale, filter: heroBlur }}
+          className="px-6 pt-16 pb-20 max-w-2xl mx-auto text-center will-change-transform"
+        >
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -250,14 +279,29 @@ const Splash = () => {
               <p className="text-[10px] text-muted-foreground">already joined</p>
             </div>
           </motion.div>
-        </section>
+
+          {/* Scroll cue */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.1, duration: 0.6 }}
+            className="mt-12 flex flex-col items-center gap-2 text-[10px] tracking-[0.25em] uppercase text-muted-foreground"
+          >
+            <span>Scroll</span>
+            <motion.span
+              animate={{ y: [0, 8, 0], opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              className="block w-px h-8 bg-gradient-to-b from-primary to-transparent"
+            />
+          </motion.div>
+        </motion.section>
 
         {/* FEED PREVIEW */}
         <motion.section
-          variants={stagger}
+          variants={sectionReveal}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, margin: "-80px" }}
+          viewport={{ once: true, amount: 0.25 }}
           className="px-6 py-16 max-w-2xl mx-auto text-center"
         >
           <motion.p variants={fadeUp} className="text-[11px] font-bold tracking-[0.2em] uppercase text-primary">See it in action</motion.p>
@@ -316,10 +360,10 @@ const Splash = () => {
 
         {/* STATS */}
         <motion.section
-          variants={stagger}
+          variants={sectionReveal}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={{ once: true, amount: 0.3 }}
           className="px-6 py-12 max-w-2xl mx-auto"
         >
           <div className="rounded-3xl border border-border/60 bg-card/60 backdrop-blur-md p-4">
@@ -345,10 +389,10 @@ const Splash = () => {
 
         {/* COMMUNITY GRID */}
         <motion.section
-          variants={stagger}
+          variants={sectionReveal}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, margin: "-80px" }}
+          viewport={{ once: true, amount: 0.2 }}
           className="px-6 py-16 max-w-2xl mx-auto text-center"
         >
           <motion.p variants={fadeUp} className="text-[11px] font-bold tracking-[0.2em] uppercase text-pink-400">Community</motion.p>
@@ -388,10 +432,10 @@ const Splash = () => {
 
         {/* STORIES */}
         <motion.section
-          variants={stagger}
+          variants={sectionReveal}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={{ once: true, amount: 0.3 }}
           className="px-6 py-16 max-w-2xl mx-auto text-center"
         >
           <motion.h2 variants={fadeUp} className="font-display text-3xl sm:text-4xl font-bold">Stories, live & shared</motion.h2>
@@ -422,10 +466,10 @@ const Splash = () => {
 
         {/* JOIN MOVEMENT */}
         <motion.section
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.8 }}
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.25 }}
           className="px-6 py-16 max-w-2xl mx-auto"
         >
           <motion.div
@@ -461,10 +505,10 @@ const Splash = () => {
 
         {/* DOWNLOAD APP */}
         <motion.section
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.8 }}
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.25 }}
           className="px-6 py-12 max-w-2xl mx-auto"
         >
           <div className="rounded-3xl border border-border/60 bg-card/60 backdrop-blur-md p-8 text-center">
