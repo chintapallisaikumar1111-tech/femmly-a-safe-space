@@ -1,6 +1,6 @@
 import { Settings, Grid3X3, Bookmark, Shield, LogOut, UserCog, Share2, ShieldCheck, Bell, HelpCircle, Lock, Sparkles } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import { currentUser, exploreImages, users } from "@/lib/mock-data";
+import { currentUser, exploreImages, followerList } from "@/lib/mock-data";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -236,8 +236,8 @@ const Profile = () => {
           <DialogHeader>
             <DialogTitle className="font-display capitalize">{listOpen}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-            {users.filter((u) => u.id !== "me").map((u) => (
+          <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1 -mr-1">
+            {followerList.map((u) => (
               <div key={u.id} className="flex items-center gap-3 py-2">
                 <img src={u.avatar} alt={u.username} className="h-10 w-10 rounded-full object-cover" />
                 <div className="flex-1 min-w-0">
